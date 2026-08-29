@@ -4,9 +4,15 @@ import { useParams } from "react-router-dom";
 function AssignmentSubmissions() {
   const { assignmentId } = useParams();
 
-  const assignments = JSON.parse(
-    localStorage.getItem("assignments") || "[]"
-  );
+
+  const assignments = (() => {
+    try {
+      const saved = localStorage.getItem("assignments");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  })();
 
   const assignment = assignments.find(
     (item) => String(item.id) === String(assignmentId)
@@ -14,94 +20,33 @@ function AssignmentSubmissions() {
 
   const storageKey = `submissions_${assignmentId}`;
 
-  const DEFAULT_SUBMISSIONS = [
-    {
-      id: 1,
-      name: "Muhammad Atif Ali",
-      rollNo: "487327",
-      email: "atif@gmail.com",
-      status: "Submitted",
-      seen: false,
-      description: "I have completed my assignment.",
-      link: "",
-      submittedAt: "Today",
-      feedback: "",
-    },
-    {
-      id: 2,
-      name: "Mohammad Ahmad",
-      rollNo: "487328",
-      email: "ahmad@gmail.com",
-      status: "Submitted",
-      seen: false,
-      description: "Assignment completed.",
-      link: "",
-      submittedAt: "Today",
-      feedback: "",
-    },
-    {
-      id: 3,
-      name: "Ubaid Raza",
-      rollNo: "487329",
-      email: "ubaid@gmail.com",
-      status: "Submitted",
-      seen: false,
-      description: "I have submitted my work.",
-      link: "",
-      submittedAt: "Today",
-      feedback: "",
-    },
-    {
-      id: 4,
-      name: "Muhammad Ahmed",
-      rollNo: "487330",
-      email: "ahmed@gmail.com",
-      status: "Submitted",
-      seen: false,
-      description: "My assignment is complete.",
-      link: "",
-      submittedAt: "Today",
-      feedback: "",
-    },
-  ];
+const [students, setStudents] = useState(() => {
+  const saved = localStorage.getItem(storageKey);
 
-  const [students, setStudents] = useState(() => {
-    const saved = localStorage.getItem(storageKey);
+  if (!saved) {
+    return [];
+  }
 
-    if (!saved) {
-      return DEFAULT_SUBMISSIONS;
-    }
+  try {
+    const parsed = JSON.parse(saved);
 
-    try {
-      const parsed = JSON.parse(saved);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+});
 
-      if (!Array.isArray(parsed)) {
-        return DEFAULT_SUBMISSIONS;
-      }
-
-      const savedIds = new Set(parsed.map((student) => student.id));
-
-      const missingDefaults = DEFAULT_SUBMISSIONS.filter(
-        (student) => !savedIds.has(student.id)
-      );
-
-      return [...DEFAULT_SUBMISSIONS.filter((student) => savedIds.has(student.id)), ...missingDefaults, ...parsed.filter(
-        (student) =>
-          !DEFAULT_SUBMISSIONS.some(
-            (defaultStudent) => defaultStudent.id === student.id
-          )
-      )];
-    } catch {
-      return DEFAULT_SUBMISSIONS;
-    }
-  });
 
   const [selectedStudent, setSelectedStudent] = useState(null);
+
 
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    localStorage.setItem(storageKey, JSON.stringify(students));
+    localStorage.setItem(
+      storageKey,
+      JSON.stringify(students)
+    );
   }, [students, storageKey]);
 
   const updateStudent = (updatedStudent) => {
@@ -186,9 +131,15 @@ function AssignmentSubmissions() {
     const value = search.toLowerCase();
 
     return (
-      (student.name || "").toLowerCase().includes(value) ||
-      (student.rollNo || "").toLowerCase().includes(value) ||
-      (student.email || "").toLowerCase().includes(value)
+      (student.name || "")
+        .toLowerCase()
+        .includes(value) ||
+      (student.rollNo || "")
+        .toLowerCase()
+        .includes(value) ||
+      (student.email || "")
+        .toLowerCase()
+        .includes(value)
     );
   });
 
@@ -216,6 +167,8 @@ function AssignmentSubmissions() {
 
   return (
     <div className="submission-page">
+
+
       <div className="submission-header">
         <div>
           <h1>Assignment Submissions</h1>
@@ -224,6 +177,7 @@ function AssignmentSubmissions() {
       </div>
 
       <div className="submission-stats">
+
         <div className="stat-card">
           <h2>{totalSubmissions}</h2>
           <p>Submissions</p>
@@ -243,35 +197,56 @@ function AssignmentSubmissions() {
           <h2>{unreviewed}</h2>
           <p>Unreviewed</p>
         </div>
+
       </div>
 
+
       <div className="submission-container">
+
+
         <div className="students-panel">
+
           <div className="students-panel-header">
+
             <h2>Submissions</h2>
 
             <input
               type="text"
               placeholder="Search by name, roll no."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) =>
+                setSearch(e.target.value)
+              }
             />
+
           </div>
 
           <div className="students-list">
+
+
             {students.length === 0 ? (
+
               <div className="no-students">
+
                 <h3>No submissions yet</h3>
+
                 <p>
-                  Students who submit this assignment will appear here.
+                  Students who submit this assignment
+                  will appear here.
                 </p>
+
               </div>
+
             ) : filteredStudents.length === 0 ? (
+
               <p className="no-students">
                 No student found.
               </p>
+
             ) : (
+
               filteredStudents.map((student) => (
+
                 <div
                   key={student.id}
                   className={`student-item ${
@@ -284,13 +259,21 @@ function AssignmentSubmissions() {
                     viewSubmission(student);
                   }}
                 >
-                  <div className="student-info">
-                    <strong>{student.name}</strong>
 
-                    <small>{student.rollNo}</small>
+                  <div className="student-info">
+
+                    <strong>
+                      {student.name}
+                    </strong>
+
+                    <small>
+                      {student.rollNo}
+                    </small>
+
                   </div>
 
                   <div className="student-status-area">
+
                     <span
                       className={`status ${
                         (
@@ -299,7 +282,8 @@ function AssignmentSubmissions() {
                         ).toLowerCase()
                       }`}
                     >
-                      {student.status || "Submitted"}
+                      {student.status ||
+                        "Submitted"}
                     </span>
 
                     <button
@@ -315,79 +299,151 @@ function AssignmentSubmissions() {
                     >
                       👁️
                     </button>
+
                   </div>
+
                 </div>
+
               ))
+
             )}
+
           </div>
+
         </div>
 
+
         <div className="student-details">
+
           {!selectedStudent ? (
+
             <div className="empty-details">
-              <h2>No submission selected</h2>
+
+              <h2>
+                No submission selected
+              </h2>
 
               <p>
                 {students.length === 0
                   ? "No student has submitted this assignment yet."
                   : "Select a student from the left side."}
               </p>
-            </div>
-          ) : (
-            <>
-              <div className="student-details-header">
-                <div>
-                  <h1>{selectedStudent.name}</h1>
 
-                  <p>{selectedStudent.email}</p>
+            </div>
+
+          ) : (
+
+            <>
+
+
+              <div className="student-details-header">
+
+                <div>
+
+                  <h1>
+                    {selectedStudent.name}
+                  </h1>
+
+                  <p>
+                    {selectedStudent.email}
+                  </p>
 
                   <small>
                     Submitted:{" "}
                     {selectedStudent.submittedAt ||
                       "Not available"}
                   </small>
+
                 </div>
 
                 <div className="header-actions">
+
                   <span className="submitted-badge">
-                    {selectedStudent.status || "Submitted"}
+                    {selectedStudent.status ||
+                      "Submitted"}
                   </span>
 
                   <button
                     className="view-large-btn"
                     onClick={() =>
-                      viewSubmission(selectedStudent)
+                      viewSubmission(
+                        selectedStudent
+                      )
                     }
                   >
                     👁️
                   </button>
+
                 </div>
+
               </div>
 
+
               <div className="details-content">
+
+
                 <div className="detail-section">
-                  <h3>Assignment</h3>
 
-                  <h4>{assignment.title}</h4>
+                  <h3>
+                    Assignment
+                  </h3>
 
-                  <p>
-                    {assignment.description ||
-                      "No description available."}
-                  </p>
+                  <h4>
+                    {assignment.title}
+                  </h4>
+
+                  <div
+                    className="assignment-description"
+                    dangerouslySetInnerHTML={{
+                      __html:
+                        assignment.description ||
+                        "<p>No description available.</p>",
+                    }}
+                  />
+
+                  {assignment.dueDate && (
+                    <p>
+                      <strong>
+                        Due Date:
+                      </strong>{" "}
+                      {assignment.dueDate}
+                    </p>
+                  )}
+
+                  {assignment.link && (
+                    <p>
+                      <strong>
+                        Reference:
+                      </strong>{" "}
+                      <a
+                        href={assignment.link}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Open Reference Link
+                      </a>
+                    </p>
+                  )}
 
                   {assignment.image && (
                     <img
                       src={assignment.image}
-                      alt="Assignment"
+                      alt={assignment.title}
                       className="assignment-detail-image"
                     />
                   )}
+
                 </div>
 
+
                 <div className="detail-section">
-                  <h3>Link</h3>
+
+                  <h3>
+                    Link
+                  </h3>
 
                   {selectedStudent.link ? (
+
                     <a
                       href={selectedStudent.link}
                       target="_blank"
@@ -395,39 +451,62 @@ function AssignmentSubmissions() {
                     >
                       🔗 {selectedStudent.link}
                     </a>
+
                   ) : (
-                    <p>No link submitted.</p>
+
+                    <p>
+                      No link submitted.
+                    </p>
+
                   )}
+
                 </div>
 
                 <div className="detail-section">
-                  <h3>Description</h3>
+
+                  <h3>
+                    Description
+                  </h3>
 
                   <div className="description-box">
                     {selectedStudent.description ||
                       "No description submitted."}
                   </div>
+
                 </div>
 
+
                 <div className="detail-section">
-                  <h3>Files</h3>
+
+                  <h3>
+                    Files
+                  </h3>
 
                   <div className="no-files">
                     No files found for this submission.
                   </div>
+
                 </div>
 
                 <div className="feedback-section">
-                  <label>Feedback (optional)</label>
+
+                  <label>
+                    Feedback (optional)
+                  </label>
 
                   <textarea
                     placeholder="Provide feedback for the submission"
-                    value={selectedStudent.feedback || ""}
+                    value={
+                      selectedStudent.feedback || ""
+                    }
                     onChange={handleFeedback}
                   />
+
                 </div>
 
+
                 <div className="submission-actions">
+
                   <button
                     className="delete-submission-btn"
                     onClick={deleteSubmission}
@@ -437,6 +516,7 @@ function AssignmentSubmissions() {
                   </button>
 
                   <div className="review-actions">
+
                     <button
                       className="reject-btn"
                       onClick={rejectStudent}
@@ -450,13 +530,21 @@ function AssignmentSubmissions() {
                     >
                       ✓ Approve
                     </button>
+
                   </div>
+
                 </div>
+
               </div>
+
             </>
+
           )}
+
         </div>
+
       </div>
+
     </div>
   );
 }
